@@ -7,7 +7,7 @@ export default function Die(props) {
   };
 
   return (
-    <div className="dice-face" style={style}>
+    <div className="dice-face" style={style} onClick={props.holdDice}>
       <h2>{props.value}</h2>
     </div>
   );
