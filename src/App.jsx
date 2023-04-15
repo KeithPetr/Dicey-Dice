@@ -6,8 +6,8 @@ function App() {
   const [dice, setDice] = useState(allNewDice());
   const [currentScore, setCurrentScore] = useState(0);
   const [totalScore, setTotalScore] = useState(0);
-  const [heldDiceScores, setHeldDiceScores] = useState([])
-  const [heldDiceIds, setHeldDiceIds] = useState([])
+  const [keptDiceScores, setKeptDiceScores] = useState([]);
+  const [heldDiceObjects, setHeldDiceObjects] = useState([]);
 
   function generateNewDie() {
     return {
@@ -39,29 +39,41 @@ function App() {
     });
     if (!hasOneOrFive) {
       setCurrentScore(0);
+      setHeldDiceObjects([]);
     }
     setDice(newDice);
   }
 
   function addToCurrentScore() {
     let scoreToAdd = 0;
-    const newHeldDiceIds = new Set(heldDiceIds);
+    const newHeldDiceObjects = new Set(heldDiceObjects);
+    const newKeptDiceObjects = [];
+
     dice.forEach((die) => {
-      if (die.isHeld && !newHeldDiceIds.has(die.id)) {
-        newHeldDiceIds.add(die.id);
+      if (die.isHeld && !newHeldDiceObjects.has(die.id)) {
+        newHeldDiceObjects.add(die.id);
+        newKeptDiceObjects.push(die.id);
       }
     });
-  
-    const heldDice = dice.filter(die => newHeldDiceIds.has(die.id));
-    heldDice.forEach((die) => {
-      scoreToAdd += die.value === 1 ? 10 : die.value === 5 ? 50 : 0;
-    });
-  
+
+    const heldDice = dice.filter(
+      (die) =>
+        newHeldDiceObjects.has(die.id) && !heldDiceObjects.includes(die.id)
+    );
+    scoreToAdd = heldDice.reduce(
+      (total, die) => total + (die.value === 1 ? 10 : die.value === 5 ? 50 : 0),
+      0
+    );
+
     setCurrentScore((prevCurrentScore) => prevCurrentScore + scoreToAdd);
-    setHeldDiceIds(Array.from(newHeldDiceIds));
+    setHeldDiceObjects([...heldDiceObjects, ...newKeptDiceObjects]);
+    setKeptDiceScores((prevKeptDiceScores) => [
+      ...prevKeptDiceScores,
+      scoreToAdd,
+    ]);
   }
 
-  console.log(heldDiceIds)
+  console.log(heldDiceObjects);
   console.log(`Current: ${currentScore}`);
   console.log(`Total: ${totalScore}`);
 
@@ -71,23 +83,6 @@ function App() {
         return die.id === id ? { ...die, isHeld: !die.isHeld } : die;
       })
     );
-    if (!heldDiceIds.includes(id)) {
-      setHeldDiceIds((prevHeldDiceIds) => [...prevHeldDiceIds, id]);
-    }
-
-    const heldDie = dice.find(die => die.id === id);
-    let heldDieScore = 0;
-    if(heldDie.isHeld) {
-      const heldDieScore = heldDie.value === 1 ? 10 : heldDie.value === 5 ? 50 : 0;
-      setHeldDiceScores(prevHeldDiceScores => [
-        ...prevHeldDiceScores,
-        heldDieScore
-      ]);
-    } else {
-      setHeldDiceScores(prevHeldDiceScores => 
-        prevHeldDiceScores.filter(score => score !== heldDieScore)
-        )
-    }
   }
 
   const diceElements = dice.map((die) => {
@@ -113,10 +108,10 @@ function App() {
       <button className="roll-dice-btn" onClick={rollDice}>
         Roll Dice
       </button>
-      <button className="add-to-total-score-btn">
-        Add to total score
+      <button className="add-to-total-score-btn">Add to total score</button>
+      <button className="keep-dice-btn" onClick={addToCurrentScore}>
+        Keep Dice
       </button>
-      <button className="keep-dice-btn" onClick={addToCurrentScore}>Keep Dice</button>
     </main>
   );
 }
