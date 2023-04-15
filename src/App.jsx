@@ -46,14 +46,19 @@ function App() {
   function addToCurrentScore() {
     let scoreToAdd = 0;
     const newHeldDiceIds = new Set(heldDiceIds);
-    dice.forEach(die => {
-      if (die.isHeld) {
-        scoreToAdd += die.value === 1 ? 10 : die.value === 5 ? 50 : 0;
-        newHeldDiceIds.add(die.id)
+    dice.forEach((die) => {
+      if (die.isHeld && !newHeldDiceIds.has(die.id)) {
+        newHeldDiceIds.add(die.id);
       }
     });
-    setCurrentScore(prevCurrentScore => prevCurrentScore + scoreToAdd);
-    setHeldDiceIds(Array.from(newHeldDiceIds))
+  
+    const heldDice = dice.filter(die => newHeldDiceIds.has(die.id));
+    heldDice.forEach((die) => {
+      scoreToAdd += die.value === 1 ? 10 : die.value === 5 ? 50 : 0;
+    });
+  
+    setCurrentScore((prevCurrentScore) => prevCurrentScore + scoreToAdd);
+    setHeldDiceIds(Array.from(newHeldDiceIds));
   }
 
   console.log(heldDiceIds)
@@ -66,6 +71,10 @@ function App() {
         return die.id === id ? { ...die, isHeld: !die.isHeld } : die;
       })
     );
+    if (!heldDiceIds.includes(id)) {
+      setHeldDiceIds((prevHeldDiceIds) => [...prevHeldDiceIds, id]);
+    }
+
     const heldDie = dice.find(die => die.id === id);
     let heldDieScore = 0;
     if(heldDie.isHeld) {
