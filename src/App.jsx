@@ -76,6 +76,7 @@ function App() {
   console.log(heldDiceObjects);
   console.log(`Current: ${currentScore}`);
   console.log(`Total: ${totalScore}`);
+  console.log(`Kept Scores: ${keptDiceScores}`);
 
   function holdDice(id) {
     setDice((prevDice) =>
